@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Smart Grid Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f7fa;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    #controls {
+      margin: 20px;
+      background-color: #ffffff;
+      margin: 20px auto;
+      padding: 20px 30px;
+      font-weight: 500;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    select, button {
+      padding: 8px 12px;
+      margin: 0 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    select {
+    background-color: #ecf0f1;
+    color: #2c3e50;
+    }
+    button {
+    background-color: #3498db;
+    color: white;
+    }
+
+    button:hover {
+    background-color: #2980b9;
+    }
+    canvas {
+      width: 100% !important;
+      max-width: 1200px;
+      height: 600px !important;
+      margin: 30px auto;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Smart Grid Load Monitoring Dashboard</h1>
+
+  <div id="controls">
+    <label for="chartType">Select Chart Type:</label>
+    <select id="chartType">
+      <option value="line">Line</option>
+      <option value="bar">Bar</option>
+    </select>
+    <button onclick="refreshData()">Refresh Data</button>
+  </div>
+
+  <canvas id="loadChart"></canvas>
+
+  <script>
+    let chart;
+
+    function fetchDataAndRenderChart(type = 'line') {
+      fetch('/data')
+        .then(res => res.json())
+        .then(data => {
+          const labels = data.map(d => d.time);
+          const loads = data.map(d => d.load);
+
+          if (chart) {
+            chart.destroy();
+          }
+
+          chart = new Chart(document.getElementById('loadChart'), {
+            type: type,
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Load (kW)',
+                data: loads,
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { position: 'top' },
+                title: {
+                  display: true,
+                  text: 'Real-Time Load Monitoring'
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: 'Load (kW)'
+                  }
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Timestamp'
+                  }
+                }
+              }
+            }
+          });
+        });
+    }
+
+    function refreshData() {
+      const selectedType = document.getElementById('chartType').value;
+      fetchDataAndRenderChart(selectedType);
+    }
+
+    document.getElementById('chartType').addEventListener('change', refreshData);
+
+    // Initial load
+    fetchDataAndRenderChart();
+  </script>
+</body>
+</html>
